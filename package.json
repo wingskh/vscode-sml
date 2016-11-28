@@ -1,0 +1,66 @@
+{
+  "private": true,
+  "name": "sml",
+  "displayName": "Standard ML",
+  "description": "Standard ML language support",
+  "version": "0.0.0",
+  "publisher": "freebroccolo",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/freebroccolo/vscode-sml/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/freebroccolo/vscode-sml.git"
+  },
+  "engines": {
+    "vscode": "^1.5.0"
+  },
+  "categories": [
+    "Formatters",
+    "Languages",
+    "Linters",
+    "Snippets"
+  ],
+  "activationEvents": [
+    "onLanguage:sml"
+  ],
+  "main": "./out/src/extension",
+  "contributes": {
+    "grammars": [
+      {
+        "language": "sml",
+        "scopeName": "source.sml",
+        "path": "./syntaxes/sml.json"
+      }
+    ],
+    "languages": [
+      {
+        "id": "sml",
+        "aliases": [
+          "Standard ML"
+        ],
+        "extensions": [
+          ".fun",
+          ".sig",
+          ".sml"
+        ],
+        "configuration": "./sml.configuration.json"
+      }
+    ]
+  },
+  "scripts": {
+    "compile": "tsc -p ./ && script/syntax.js",
+    "postinstall": "node ./node_modules/vscode/bin/install",
+    "vscode:prepublish": "tsc -p ./ && script/syntax.js"
+  },
+  "devDependencies": {
+    "@types/node": "^6.0.51",
+    "tslint": "^4.0.2",
+    "typescript": "2.0.10",
+    "vscode": "1.0.3"
+  },
+  "dependencies": {
+  },
+  "extensionDependencies": []
+}
