@@ -31,6 +31,7 @@ export const Kwd = {
   END: `end`,
   EQTYPE: `eqtype`,
   EXCEPTION: `exception`,
+  FALSE: `false`,
   FN: `fn`,
   FUN: `fun`,
   FUNCTOR: `functor`,
@@ -55,6 +56,7 @@ export const Kwd = {
   STRUCT: `struct`,
   STRUCTURE: `structure`,
   THEN: `then`,
+  TRUE: `true`,
   TYPE: `type`,
   VAL: `val`,
   WHERE: `where`,
@@ -112,6 +114,7 @@ export const capture = (arg: string) => `(${arg})`;
 export const complement = (...rest: string[]) => `[^${rest.join("")}]`;
 export const group = (arg: string) => `(?:${arg})`;
 export const lookBehind = (arg: string) => `(?<=${arg})`;
+export const negativeLookBehind = (arg: string) => `(?<!${arg})`;
 export function lastOps(...rest: string[]): string {
   const result: string[] = [];
   for (const token of rest) result.push(`[^${seq(...TokSet.operator)}]${token}`, `^${token}`);
@@ -138,24 +141,32 @@ export const Gph = {
   COLON: `:`,
   COMMA: `,`,
   EQUALS_SIGN: `=`,
+  ELLIPSIS: `\\.\\.\\.`,
+  FULL_STOP: `\\.`,
   GREATER_THAN_SIGN: `>`,
   HYPHEN_MINUS: `-`,
-  LEFT_CURLY_BRACKET: `{`,
+  LEFT_CURLY_BRACKET: `\\{`,
   LEFT_PARENTHESIS: `\\(`,
+  LEFT_SQUARE_BRACKET: `\\[`,
   LOW_LINE: `_`,
   NUMBER_SIGN: `#`,
-  RIGHT_CURLY_BRACKET: `}`,
+  RIGHT_CURLY_BRACKET: `\\}`,
   RIGHT_PARENTHESIS: `\\)`,
+  RIGHT_SQUARE_BRACKET: `\\]`,
+  QUOTATION_MARK: `"`,
   SEMICOLON: `;`,
   VERTICAL_LINE: `\\|`,
 };
 
 export const Rx = {
   boundary: `\\b`,
-  topdecEnd:
+  expEnd:
     lookAhead(
       alt(
+        Gph.COMMA,
+        Gph.RIGHT_CURLY_BRACKET,
         Gph.RIGHT_PARENTHESIS,
+        Gph.RIGHT_SQUARE_BRACKET,
         seq(
           words(group(alt(...TokSet.topdecEnd))),
           group(
@@ -164,8 +175,44 @@ export const Rx = {
               set(Cls.space),
               ops(
                 alt(
+                  Gph.COMMA,
+                  Gph.RIGHT_CURLY_BRACKET,
                   Gph.RIGHT_PARENTHESIS,
-                  Gph.RIGHT_CURLY_BRACKET))))))),
+                  Gph.RIGHT_SQUARE_BRACKET))))))),
+topdecEndSansType:
+    lookAhead(
+      alt(
+        Gph.RIGHT_CURLY_BRACKET,
+        Gph.RIGHT_PARENTHESIS,
+        Gph.RIGHT_SQUARE_BRACKET,
+        seq(
+          words(group(alt(...TokSet.topdecEnd.filter((x) => x !== Kwd.TYPE) ))),
+          group(
+            alt(
+              "$",
+              set(Cls.space),
+              ops(
+                alt(
+                  Gph.RIGHT_CURLY_BRACKET,
+                  Gph.RIGHT_PARENTHESIS,
+                  Gph.RIGHT_SQUARE_BRACKET))))))),
+  topdecEnd:
+    lookAhead(
+      alt(
+        Gph.RIGHT_CURLY_BRACKET,
+        Gph.RIGHT_PARENTHESIS,
+        Gph.RIGHT_SQUARE_BRACKET,
+        seq(
+          words(group(alt(...TokSet.topdecEnd))),
+          group(
+            alt(
+              "$",
+              set(Cls.space),
+              ops(
+                alt(
+                  Gph.RIGHT_CURLY_BRACKET,
+                  Gph.RIGHT_PARENTHESIS,
+                  Gph.RIGHT_SQUARE_BRACKET))))))),
 };
 
 export const operator: string =
@@ -188,7 +235,7 @@ export const Lex = {
   tyvar:
     seq(
       negativeLookAhead(words(group(alt(...Object.keys(Kwd).map((key) => Kwd[key]))))),
-      seq("'", identifier)),
+      seq(capture(Gph.APOSTROPHE), capture(identifier))),
   vid:
     seq(
       negativeLookAhead(words(group(alt(...Object.keys(Kwd).map((key) => Kwd[key]))))),
@@ -199,13 +246,16 @@ export const Sco = {
   AND: `variable.other.class.js variable.interpolation storage.modifier message.error`,
   COMMENT: `comment`,
   CONSTRUCTOR: `constant.language`,
+  FIELD_NAME: `markup.inserted constant.language support.property-value entity.name.filename`,
   FUNCTION_NAME: `entity.name.function`,
   KEYWORD: `keyword`,
   MODULE_NAME: `support.class entity.name.class`,
+  NUMBER: `constant.numeric`,
   OPERATOR: `variable.other.class.js variable.interpolation keyword.operator keyword.control.less message.error`,
   PATTERN_VARIABLE: `variable.language string.other.link`,
   REC: `variable.other.class.js variable.interpolation storage.modifier message.error`,
   STRING: `string.double`,
+  TYPE_CONSTRUCTOR: `support.type string.regexp`,
   TYPE_NAME: `entity.name.function`,
   TYPE_OPERATOR: `markup.inserted keyword.control.less`,
   TYPE_VARIABLE: `variable.parameter string.other.link variable.language`,
@@ -219,27 +269,29 @@ export const appexp: schema.Rule = {
 
 export const atexp: schema.Rule = {
   patterns: [
+    { include: `#comment` },
     { include: `#scon` },
-    {
-      begin: Gph.LEFT_CURLY_BRACKET,
-      end: Gph.RIGHT_CURLY_BRACKET,
-      patterns: [
-        { include: `#exprow` },
-      ],
-    },
+    { include: `#constant` },
     {
       // FIXME: end
       begin: ops(Gph.NUMBER_SIGN),
-      end: alt(Lex.vid, lookBehind(`"`)),
+      end: alt(capture(Lex.vid), lookBehind(set(Cls.digit, Gph.QUOTATION_MARK))),
       beginCaptures: {
         0: { name: Sco.OPERATOR },
       },
+      endCaptures: {
+        1: { name: Sco.FIELD_NAME },
+      },
       patterns: [
+        { include: `#constantNumber` },
         { include: `#constantString` },
       ],
     },
     {
       match: seq(Gph.LEFT_PARENTHESIS, Gph.RIGHT_PARENTHESIS),
+    },
+    {
+      match: seq(Gph.LEFT_SQUARE_BRACKET, Gph.RIGHT_SQUARE_BRACKET),
     },
     {
       begin: words(Kwd.LET),
@@ -271,8 +323,32 @@ export const atexp: schema.Rule = {
       ],
     },
     {
+      begin: Gph.LEFT_CURLY_BRACKET,
+      end: Gph.RIGHT_CURLY_BRACKET,
+      patterns: [
+        { include: `#exp` },
+      ],
+    },
+    {
       begin: seq(Gph.LEFT_PARENTHESIS, negativeLookAhead(Gph.RIGHT_PARENTHESIS)),
       end: Gph.RIGHT_PARENTHESIS,
+      patterns: [
+        {
+          begin: ops(Gph.COLON),
+          end: lookAhead(Gph.RIGHT_PARENTHESIS),
+          beginCaptures: {
+            0: { name: Sco.KEYWORD },
+          },
+          patterns: [
+            { include: `#ty` },
+          ],
+        },
+        { include: `#exp` },
+      ],
+    },
+    {
+      begin: Gph.LEFT_SQUARE_BRACKET,
+      end: Gph.RIGHT_SQUARE_BRACKET,
       patterns: [
         { include: `#exp` },
       ],
@@ -296,7 +372,7 @@ export const comment: schema.Rule = {
 export const conbind: schema.Rule = {
   patterns: [
     {
-      begin: lookBehind(lastOps(Gph.EQUALS_SIGN, Gph.VERTICAL_LINE)),
+      begin: lookBehind(alt(lastWords(Kwd.EXCEPTION), lastOps(Gph.EQUALS_SIGN, Gph.VERTICAL_LINE))),
       end:
         alt(
           capture(words(Kwd.OF)),
@@ -304,7 +380,7 @@ export const conbind: schema.Rule = {
           Rx.topdecEnd),
       endCaptures: {
         1: { name: Sco.KEYWORD },
-        2: { name: Sco.OPERATOR },
+        2: { name: Sco.KEYWORD },
       },
       patterns: [
         { include: `#comment` },
@@ -318,7 +394,7 @@ export const conbind: schema.Rule = {
       begin: lookBehind(lastWords(Kwd.OF)),
       end: alt(ops(Gph.VERTICAL_LINE), Rx.topdecEnd),
       endCaptures: {
-        0: { name: Sco.OPERATOR },
+        0: { name: Sco.KEYWORD },
       },
       patterns: [
         { include: `#comment` },
@@ -334,8 +410,37 @@ export const condesc: schema.Rule = {
 
 export const constant: schema.Rule = {
   patterns: [
+    { include: `#constantNumber` },
     { include: `#constantString` },
+    {
+      match: words(alt(Kwd.FALSE, Kwd.TRUE)),
+      name: Sco.CONSTRUCTOR,
+    },
+    { include: `#qualifiedConstant` },
+    {
+      begin: Gph.LEFT_CURLY_BRACKET,
+      end: Gph.RIGHT_CURLY_BRACKET,
+      patterns: [
+        { include: `#row` },
+      ],
+    },
   ],
+};
+
+export const constantNumber: schema.Rule = {
+  match:
+  seq(
+    negativeLookBehind(set(Cls.alpha)),
+    seq(
+      set(Cls.digit),
+      many(set(Cls.digit))),
+    opt(
+      capture(
+        seq(
+          Gph.FULL_STOP,
+          set(Cls.digit),
+          many(set(Cls.digit)))))),
+  name: Sco.NUMBER,
 };
 
 export const constantString: schema.Rule = {
@@ -405,7 +510,7 @@ export const dec: schema.Rule = {
       ],
     },
     {
-      begin: words(alt(Kwd.INFIX, Kwd.INFIXR, Kwd.NONFIX)),
+      begin: words(group(alt(Kwd.INFIX, Kwd.INFIXR, Kwd.NONFIX))),
       end: Rx.topdecEnd,
       beginCaptures: {
         0: { name: Sco.KEYWORD },
@@ -424,6 +529,9 @@ export const dec: schema.Rule = {
       beginCaptures: {
         0: { name: Sco.KEYWORD },
       },
+      patterns: [
+        { include: `#qualifiedModule` },
+      ],
     },
     { include: `#decType` },
     { include: `#decVal` },
@@ -455,6 +563,7 @@ export const decException: schema.Rule = {
       },
       patterns: [
         { include: `#comment` },
+        { include: `#conbind` },
       ],
     },
   ],
@@ -496,21 +605,19 @@ export const exdesc: schema.Rule = {
 
 export const exp: schema.Rule = {
   patterns: [
-    { include: `#comment` },
-    { include: `#constant` },
     { include: `#atexp` },
     {
       // FIXME
-      match: alt(capture(ops(",")), capture(alt(Gph.SEMICOLON, Lex.operator)), capture(words(Kwd.AS))),
+      match: alt(capture(ops(Gph.COMMA)), capture(alt(Gph.SEMICOLON, Lex.operator)), capture(words(Kwd.AS))),
       captures: {
-        1: { name: Sco.TYPE_OPERATOR },
+        1: { name: Sco.OPERATOR },
         2: { name: Sco.OPERATOR },
         3: { name: Sco.KEYWORD },
       },
     },
     {
       begin: words(Kwd.HANDLE),
-      end: Rx.topdecEnd,
+      end: Rx.expEnd,
       beginCaptures: {
         0: { name: Sco.KEYWORD },
       },
@@ -523,8 +630,8 @@ export const exp: schema.Rule = {
       name: Sco.KEYWORD,
     },
     {
-      begin: words(group(alt(Kwd.FN))),
-      end: Rx.topdecEnd,
+      begin: words(Kwd.FN),
+      end: Rx.expEnd,
       beginCaptures: {
         0: { name: Sco.KEYWORD },
       },
@@ -546,7 +653,7 @@ export const exp: schema.Rule = {
         },
         {
           begin: lookBehind(lastWords(Kwd.OF)),
-          end: alt(capture(ops(Gph.VERTICAL_LINE)), Rx.topdecEnd),
+          end: Rx.expEnd,
           endCaptures: {
             0: { name: Sco.OPERATOR },
           },
@@ -554,13 +661,6 @@ export const exp: schema.Rule = {
             { include: `#match` },
           ],
         },
-        // {
-        //   begin: lookBehind(lastOps(Gph.VERTICAL_LINE)),
-        //   end: Rx.topdecEnd,
-        //   patterns: [
-        //     { include: `#match` },
-        //   ],
-        // },
       ],
     },
     {
@@ -569,39 +669,15 @@ export const exp: schema.Rule = {
     },
     {
       match: words(Kwd.ORELSE),
-      name: Sco.KEYWORD,
+      name: Sco.OPERATOR,
     },
     {
       match: words(Kwd.ANDALSO),
-      name: Sco.KEYWORD,
+      name: Sco.OPERATOR,
     },
     {
       match: words(group(alt(Kwd.WHILE, Kwd.DO))),
       name: Sco.KEYWORD,
-    },
-  ],
-};
-
-export const exprow: schema.Rule = {
-  patterns: [
-    {
-      begin: lookBehind(alt(Gph.LEFT_CURLY_BRACKET, Gph.COMMA)),
-      end: ops(Gph.EQUALS_SIGN),
-      endCaptures: {
-        0: { name: Sco.OPERATOR },
-      },
-      patterns: [
-      ],
-    },
-    {
-      begin: lookBehind(lastOps(Gph.EQUALS_SIGN)),
-      end: alt(capture(Gph.COMMA), lookAhead(Gph.RIGHT_CURLY_BRACKET)),
-      endCaptures: {
-        0: { name: Sco.OPERATOR },
-      },
-      patterns: [
-        { include: `#exp` },
-      ],
     },
   ],
 };
@@ -616,13 +692,7 @@ export const funbind: schema.Rule = {
       },
       patterns: [
         { include: `#comment` },
-        {
-          begin: lookBehind(lastWords(Kwd.FUNCTOR)),
-          end: Lex.vid,
-          endCaptures: {
-            0: { name: Sco.MODULE_NAME },
-          },
-        },
+        { include: `#qualifiedModule` },
         {
           begin: Gph.LEFT_PARENTHESIS,
           end: Gph.RIGHT_PARENTHESIS,
@@ -653,7 +723,7 @@ export const funbind: schema.Rule = {
       begin: lookBehind(lastOps(Gph.COLON)),
       end: ops(Gph.EQUALS_SIGN),
       endCaptures: {
-        0: { name: Sco.OPERATOR },
+        0: { name: Sco.KEYWORD },
       },
       patterns: [
         { include: `#sigexp` },
@@ -740,7 +810,7 @@ export const fvalbind: schema.Rule = {
       begin: lookBehind(lastOps(Gph.EQUALS_SIGN)),
       end: alt(capture(ops(Gph.VERTICAL_LINE)), capture(words(Kwd.AND)), Rx.topdecEnd),
       endCaptures: {
-        1: { name: Sco.OPERATOR },
+        1: { name: Sco.KEYWORD },
         2: { name: Sco.AND },
       },
       patterns: [
@@ -766,7 +836,7 @@ export const match: schema.Rule = {
             lastOps(Gph.VERTICAL_LINE))),
       end: ops(seq(Gph.EQUALS_SIGN, Gph.GREATER_THAN_SIGN)),
       endCaptures: {
-        0: { name: Sco.OPERATOR },
+        0: { name: Sco.KEYWORD },
       },
       patterns: [
         { include: `#comment` },
@@ -775,9 +845,9 @@ export const match: schema.Rule = {
     },
     {
       begin: lookBehind(lastOps(seq(Gph.EQUALS_SIGN, Gph.GREATER_THAN_SIGN))),
-      end: alt(ops(Gph.VERTICAL_LINE), Rx.topdecEnd),
+      end: alt(ops(Gph.VERTICAL_LINE), Rx.expEnd),
       endCaptures: {
-        0: { name: Sco.OPERATOR },
+        0: { name: Sco.KEYWORD },
       },
       patterns: [
         { include: `#exp` },
@@ -788,11 +858,12 @@ export const match: schema.Rule = {
 
 export const pat: schema.Rule = {
   patterns: [
+    { include: `#constant` },
     {
       // FIXME
-      match: alt(capture(ops(",")), capture(Lex.operator), capture(words(Kwd.AS))),
+      match: alt(capture(ops(Gph.COMMA)), capture(Lex.operator), capture(words(Kwd.AS))),
       captures: {
-        1: { name: Sco.TYPE_OPERATOR },
+        1: { name: Sco.OPERATOR },
         2: { name: Sco.OPERATOR },
         3: { name: Sco.KEYWORD },
       },
@@ -811,6 +882,16 @@ export const pat: schema.Rule = {
       end: Gph.RIGHT_PARENTHESIS,
       patterns: [
         { include: `#comment` },
+        {
+          begin: ops(Gph.COLON),
+          end: lookAhead(Gph.RIGHT_PARENTHESIS),
+          beginCaptures: {
+            0: { name: Sco.KEYWORD },
+          },
+          patterns: [
+            { include: `#ty` },
+          ],
+        },
         { include: `#pat` },
       ],
     },
@@ -819,6 +900,90 @@ export const pat: schema.Rule = {
 
 export const patrow: schema.Rule = {
   patterns: [],
+};
+
+export const qualifiedConstant: schema.Rule = {
+  patterns: [
+    { include: `#qualifiedPrefix` },
+    {
+      match: seq(lookAhead(set(Cls.upper)), Lex.vid),
+      name: Sco.CONSTRUCTOR,
+    },
+  ],
+};
+
+export const qualifiedModule: schema.Rule = {
+  patterns: [
+    { include: `#qualifiedPrefix` },
+    {
+      match: seq(lookAhead(set(Cls.upper)), Lex.vid),
+      name: Sco.MODULE_NAME,
+    },
+  ],
+};
+
+export const qualifiedPrefix: schema.Rule = {
+  begin: seq(lookAhead(set(Cls.upper)), Lex.vid, lookAhead(seq(many(set(Cls.space)), ops(Gph.FULL_STOP)))),
+  end: ops(Gph.FULL_STOP),
+  beginCaptures: {
+    0: { name: Sco.MODULE_NAME },
+  },
+  endCaptures: {
+    0: { name: Sco.KEYWORD },
+  },
+};
+
+export const qualifiedType: schema.Rule = {
+  patterns: [
+    { include: `#qualifiedPrefix` },
+    {
+      match: Lex.vid,
+      name: Sco.TYPE_CONSTRUCTOR,
+    },
+  ],
+};
+
+export const row: schema.Rule = {
+  patterns: [
+    {
+      begin: lookBehind(alt(Gph.LEFT_CURLY_BRACKET, Gph.COMMA)),
+      end: alt(ops(alt(capture(Gph.COMMA), capture(alt(Gph.COLON, Gph.EQUALS_SIGN)))), lookAhead(Gph.RIGHT_CURLY_BRACKET)),
+      endCaptures: {
+        1: { name: Sco.OPERATOR },
+        2: { name: Sco.KEYWORD },
+      },
+      patterns: [
+        {
+          match: Lex.vid,
+          name: Sco.FIELD_NAME,
+        },
+        {
+          match: ops(Gph.ELLIPSIS),
+          name: Sco.KEYWORD,
+        },
+      ],
+    },
+    {
+      begin: lookBehind(lastOps(Gph.COLON)),
+      end: alt(Gph.COMMA, lookAhead(Gph.RIGHT_CURLY_BRACKET)),
+      endCaptures: {
+        0: { name: Sco.OPERATOR },
+      },
+      patterns: [
+        { include: `#ty` },
+      ],
+    },
+    {
+      begin: lookBehind(lastOps(Gph.EQUALS_SIGN)),
+      end: alt(Gph.COMMA, lookAhead(Gph.RIGHT_CURLY_BRACKET)),
+      endCaptures: {
+        0: { name: Sco.OPERATOR },
+      },
+      patterns: [
+        { include: `#exp` },
+      ],
+    },
+  ],
 };
 
 export const scon: schema.Rule = {
@@ -835,6 +1000,7 @@ export const sigbind: schema.Rule = {
       },
       patterns: [
         { include: `#comment` },
+        { include: `#qualifiedModule` },
       ],
     },
     {
@@ -891,7 +1057,13 @@ export const sigexp: schema.Rule = {
     },
     {
       begin: alt(lookBehind(lastWords(Kwd.WHERE)), words(Kwd.WHERE)),
-      end: alt(capture(words(Kwd.WHERE)), lookAhead(alt(ops(Gph.EQUALS_SIGN), Rx.topdecEnd))),
+      end:
+        alt(
+          capture(words(Kwd.WHERE)),
+          lookAhead(
+            alt(
+              ops(Gph.EQUALS_SIGN),
+              Rx.topdecEndSansType))),
       beginCaptures: {
         0: { name: Sco.KEYWORD },
       },
@@ -902,6 +1074,7 @@ export const sigexp: schema.Rule = {
         { include: `#decType` },
       ],
     },
+    { include: `#qualifiedModule` },
   ],
 };
 
@@ -936,13 +1109,7 @@ export const strbind: schema.Rule = {
       },
       patterns: [
         { include: `#comment` },
-        {
-          begin: lookBehind(lastWords(Kwd.STRUCTURE, Kwd.AND)),
-          end: Lex.vid,
-          endCaptures: {
-            0: { name: Sco.MODULE_NAME },
-          },
-        },
+        { include: `#qualifiedModule` },
       ],
     },
     {
@@ -1039,6 +1206,7 @@ export const strexp: schema.Rule = {
         0: { name: Sco.KEYWORD },
       },
     },
+    { include: `#qualifiedModule` },
   ],
 };
 
@@ -1055,13 +1223,16 @@ export const ty: schema.Rule = {
     { include: `#comment` },
     {
       match: Lex.tyvar,
-      name: Sco.TYPE_VARIABLE,
+      captures: {
+        1: { name: Sco.COMMENT },
+        2: { name: Sco.TYPE_VARIABLE },
+      },
     },
     {
       begin: Gph.LEFT_CURLY_BRACKET,
       end: Gph.RIGHT_CURLY_BRACKET,
       patterns: [
-        { include: `#tyrow` },
+        { include: `#row` },
       ],
     },
     {
@@ -1078,9 +1249,14 @@ export const ty: schema.Rule = {
       patterns: [
         { include: `#ty` },
         {
-          match: ops(Gph.COMMA),
-          name: Sco.TYPE_OPERATOR,
+          match: Gph.COMMA,
+          name: Sco.OPERATOR,
         },
+      ],
+    },
+    {
+      patterns: [
+        { include: `#qualifiedType` },
       ],
     },
   ],
@@ -1118,28 +1294,6 @@ export const typdesc: schema.Rule = {
   patterns: [],
 };
 
-export const tyrow: schema.Rule = {
-  patterns: [
-    {
-      begin: lookBehind(alt(Gph.LEFT_CURLY_BRACKET, Gph.COMMA)),
-      end: ops(Gph.COLON),
-      endCaptures: {
-        0: { name: Sco.KEYWORD },
-      },
-    },
-    {
-      begin: lookBehind(lastOps(Gph.COLON)),
-      end: alt(capture(Gph.COMMA), lookAhead(Gph.RIGHT_CURLY_BRACKET)),
-      endCaptures: {
-        0: { name: Sco.OPERATOR },
-      },
-      patterns: [
-        { include: `#ty` },
-      ],
-    },
-  ],
-};
-
 export const valbind: schema.Rule = {
   patterns: [
     {
@@ -1164,6 +1318,9 @@ export const valbind: schema.Rule = {
             1: { name: Sco.REC },
             2: { name: Sco.FUNCTION_NAME },
           },
+          patterns: [
+            { include: `#pat` },
+          ],
         },
         {
           begin: lookBehind(lastWords(Kwd.REC)),
@@ -1189,7 +1346,7 @@ export const valbind: schema.Rule = {
       begin: lookBehind(lastOps(Gph.EQUALS_SIGN)),
       end: alt(capture(ops(Gph.VERTICAL_LINE)), capture(words(Kwd.AND)), Rx.topdecEnd),
       endCaptures: {
-        1: { name: Sco.OPERATOR },
+        1: { name: Sco.KEYWORD },
         2: { name: Sco.AND },
       },
       patterns: [
@@ -1218,6 +1375,7 @@ const grammar: schema.IGrammar = {
     conbind,
     condesc,
     constant,
+    constantNumber,
     constantString,
     datbind,
     datdesc,
@@ -1229,7 +1387,6 @@ const grammar: schema.IGrammar = {
     exbind,
     exdesc,
     exp,
-    exprow,
     funbind,
     fundec,
     fvalbind,
@@ -1237,6 +1394,11 @@ const grammar: schema.IGrammar = {
     match,
     pat,
     patrow,
+    qualifiedConstant,
+    qualifiedModule,
+    qualifiedPrefix,
+    qualifiedType,
+    row,
     scon,
     sigbind,
     sigdec,
@@ -1251,7 +1413,6 @@ const grammar: schema.IGrammar = {
     ty,
     typbind,
     typdesc,
-    tyrow,
     valbind,
     valdesc,
   },
