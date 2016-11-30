@@ -244,21 +244,33 @@ export const Lex = {
 
 export const Sco = {
   AND: `variable.other.class.js variable.interpolation storage.modifier message.error`,
+  COLON: `keyword.control.less constant.language`,
   COMMENT: `comment`,
-  CONSTRUCTOR: `constant.language`,
+  CONSTRUCTOR: `keyword.control.less constant.language`,
   FIELD_NAME: `markup.inserted constant.language support.property-value entity.name.filename`,
+  FUN: `storage.type`,
   FUNCTION_NAME: `entity.name.function`,
+  FUNCTOR: `variable.other.class.js variable.interpolation keyword.operator keyword.control message.error`,
+  INCLUDE: `keyword.control.include`,
   KEYWORD: `keyword`,
+  LET: `keyword.control`,
+  LOCAL: `keyword.control`,
   MODULE_NAME: `support.class entity.name.class`,
   NUMBER: `constant.numeric`,
-  OPERATOR: `variable.other.class.js variable.interpolation keyword.operator keyword.control.less message.error`,
-  PATTERN_VARIABLE: `variable.language string.other.link`,
-  REC: `variable.other.class.js variable.interpolation storage.modifier message.error`,
+  OPEN: `keyword.control.open`,
+  OPERATOR: `variable.other.class.js variable.interpolation keyword.operator keyword.control message.error`,
+  PATTERN_VARIABLE: `string.other.link variable.language variable.parameter`,
+  REC: `variable.other.class.js variable.interpolation keyword.operator keyword.control message.error`,
+  SIG: `variable.other.class.js variable.interpolation keyword.control storage.type message.error`,
+  SIGNATURE: `variable.other.class.js variable.interpolation keyword.control storage.type message.error`,
   STRING: `string.double`,
-  TYPE_CONSTRUCTOR: `support.type string.regexp`,
+  STRUCTURE: `variable.other.class.js variable.interpolation keyword.control storage.type message.error`,
+  STRUCT: `variable.other.class.js variable.interpolation keyword.control storage.type message.error`,
+  TYPE_CONSTRUCTOR: `support constant.numeric`,
   TYPE_NAME: `entity.name.function`,
-  TYPE_OPERATOR: `markup.inserted keyword.control.less`,
+  TYPE_OPERATOR: `variable.other.class.js variable.interpolation keyword.operator keyword.control message.error`,
   TYPE_VARIABLE: `variable.parameter string.other.link variable.language`,
+  VAL: `storage.type`,
 };
 
 export const appexp: schema.Rule = {
@@ -297,14 +309,14 @@ export const atexp: schema.Rule = {
       begin: words(Kwd.LET),
       end: lookBehind(lastWords(Kwd.END)),
       captures: {
-        0: { name: Sco.KEYWORD },
+        0: { name: Sco.LET },
       },
       patterns: [
         {
           begin: lookBehind(lastWords(Kwd.LET)),
           end: words(Kwd.IN),
           endCaptures: {
-            0: { name: Sco.KEYWORD },
+            0: { name: Sco.LET },
           },
           patterns: [
             { include: `#dec` },
@@ -314,7 +326,7 @@ export const atexp: schema.Rule = {
           begin: lookBehind(lastWords(Kwd.IN)),
           end: words(Kwd.END),
           endCaptures: {
-            0: { name: Sco.KEYWORD },
+            0: { name: Sco.LET },
           },
           patterns: [
             { include: `#exp` },
@@ -337,7 +349,7 @@ export const atexp: schema.Rule = {
           begin: ops(Gph.COLON),
           end: lookAhead(Gph.RIGHT_PARENTHESIS),
           beginCaptures: {
-            0: { name: Sco.KEYWORD },
+            0: { name: Sco.COLON },
           },
           patterns: [
             { include: `#ty` },
@@ -379,8 +391,8 @@ export const conbind: schema.Rule = {
           capture(ops(Gph.VERTICAL_LINE)),
           Rx.topdecEnd),
       endCaptures: {
-        1: { name: Sco.KEYWORD },
-        2: { name: Sco.KEYWORD },
+        1: { name: Sco.OPERATOR },
+        2: { name: Sco.OPERATOR },
       },
       patterns: [
         { include: `#comment` },
@@ -394,7 +406,7 @@ export const conbind: schema.Rule = {
       begin: lookBehind(lastWords(Kwd.OF)),
       end: alt(ops(Gph.VERTICAL_LINE), Rx.topdecEnd),
       endCaptures: {
-        0: { name: Sco.KEYWORD },
+        0: { name: Sco.OPERATOR },
       },
       patterns: [
         { include: `#comment` },
@@ -455,20 +467,18 @@ export const constantString: schema.Rule = {
 export const datbind: schema.Rule = {
   patterns: [
     {
-      begin:
-        lookBehind(
-          lastWords(Kwd.ABSTYPE, Kwd.AND, Kwd.DATATYPE)),
+      begin: lookBehind(lastWords(Kwd.ABSTYPE, Kwd.AND, Kwd.DATATYPE)),
       end: ops(Gph.EQUALS_SIGN),
       endCaptures: {
-        0: { name: Sco.OPERATOR },
+        0: { name: Sco.CONSTRUCTOR },
       },
       patterns: [
         { include: `#comment` },
-        { include: `#ty` },
         {
           match: Lex.vid,
           name: Sco.TYPE_NAME,
         },
+        { include: `#ty` },
       ],
     },
     {
@@ -503,7 +513,7 @@ export const dec: schema.Rule = {
       begin: words(Kwd.FUN),
       end: Rx.topdecEnd,
       beginCaptures: {
-        0: { name: Sco.KEYWORD },
+        0: { name: Sco.FUN },
       },
       patterns: [
         { include: `#fvalbind` },
@@ -527,7 +537,7 @@ export const dec: schema.Rule = {
       begin: words(Kwd.OPEN),
       end: Rx.topdecEnd,
       beginCaptures: {
-        0: { name: Sco.KEYWORD },
+        0: { name: Sco.OPEN },
       },
       patterns: [
         { include: `#qualifiedModule` },
@@ -588,7 +598,7 @@ export const decVal: schema.Rule = {
   begin: words(Kwd.VAL),
   end: Rx.topdecEnd,
   beginCaptures: {
-    0: { name: Sco.KEYWORD },
+    0: { name: Sco.VAL },
   },
   patterns: [
     { include: `#valbind` },
@@ -686,9 +696,10 @@ export const funbind: schema.Rule = {
   patterns: [
     {
       begin: lookBehind(lastWords(Kwd.FUNCTOR, Kwd.AND)),
-      end: ops(alt(Gph.COLON, Gph.EQUALS_SIGN)),
+      end: ops(alt(capture(Gph.COLON), capture(Gph.EQUALS_SIGN))),
       endCaptures: {
-        0: { name: Sco.KEYWORD },
+        1: { name: Sco.COLON },
+        2: { name: Sco.CONSTRUCTOR },
       },
       patterns: [
         { include: `#comment` },
@@ -705,7 +716,7 @@ export const funbind: schema.Rule = {
                 0: { name: Sco.MODULE_NAME },
               },
               endCaptures: {
-                0: { name: Sco.KEYWORD },
+                0: { name: Sco.COLON },
               },
             },
             {
@@ -723,7 +734,7 @@ export const funbind: schema.Rule = {
       begin: lookBehind(lastOps(Gph.COLON)),
       end: ops(Gph.EQUALS_SIGN),
       endCaptures: {
-        0: { name: Sco.KEYWORD },
+        0: { name: Sco.CONSTRUCTOR },
       },
       patterns: [
         { include: `#sigexp` },
@@ -759,7 +770,7 @@ export const fundec: schema.Rule = {
       begin: words(Kwd.FUNCTOR),
       end: Rx.topdecEnd,
       beginCaptures: {
-        0: { name: Sco.KEYWORD },
+        0: { name: Sco.FUNCTOR },
       },
       patterns: [
         { include: `#funbind` },
@@ -776,9 +787,10 @@ export const fvalbind: schema.Rule = {
           alt(
             lastOps(Gph.VERTICAL_LINE),
             lastWords(Kwd.AND, Kwd.FUN))),
-      end: ops(set(Gph.COLON, Gph.EQUALS_SIGN)),
+      end: ops(alt(capture(Gph.COLON), capture(Gph.EQUALS_SIGN))),
       endCaptures: {
-        0: { name: Sco.KEYWORD },
+        1: { name: Sco.COLON },
+        2: { name: Sco.CONSTRUCTOR },
       },
       patterns: [
         { include: `#comment` },
@@ -800,7 +812,7 @@ export const fvalbind: schema.Rule = {
       begin: lookBehind(lastOps(Gph.COLON)),
       end: alt(ops(Gph.EQUALS_SIGN), Rx.topdecEnd),
       endCaptures: {
-        0: { name: Sco.KEYWORD },
+        0: { name: Sco.CONSTRUCTOR },
       },
       patterns: [
         { include: `#ty` },
@@ -810,7 +822,7 @@ export const fvalbind: schema.Rule = {
       begin: lookBehind(lastOps(Gph.EQUALS_SIGN)),
       end: alt(capture(ops(Gph.VERTICAL_LINE)), capture(words(Kwd.AND)), Rx.topdecEnd),
       endCaptures: {
-        1: { name: Sco.KEYWORD },
+        1: { name: Sco.OPERATOR },
         2: { name: Sco.AND },
       },
       patterns: [
@@ -836,7 +848,7 @@ export const match: schema.Rule = {
             lastOps(Gph.VERTICAL_LINE))),
       end: ops(seq(Gph.EQUALS_SIGN, Gph.GREATER_THAN_SIGN)),
       endCaptures: {
-        0: { name: Sco.KEYWORD },
+        0: { name: Sco.OPERATOR },
       },
       patterns: [
         { include: `#comment` },
@@ -847,7 +859,7 @@ export const match: schema.Rule = {
       begin: lookBehind(lastOps(seq(Gph.EQUALS_SIGN, Gph.GREATER_THAN_SIGN))),
       end: alt(ops(Gph.VERTICAL_LINE), Rx.expEnd),
       endCaptures: {
-        0: { name: Sco.KEYWORD },
+        0: { name: Sco.OPERATOR },
       },
       patterns: [
         { include: `#exp` },
@@ -886,7 +898,7 @@ export const pat: schema.Rule = {
           begin: ops(Gph.COLON),
           end: lookAhead(Gph.RIGHT_PARENTHESIS),
           beginCaptures: {
-            0: { name: Sco.KEYWORD },
+            0: { name: Sco.COLON },
           },
           patterns: [
             { include: `#ty` },
@@ -929,7 +941,7 @@ export const qualifiedPrefix: schema.Rule = {
     0: { name: Sco.MODULE_NAME },
   },
   endCaptures: {
-    0: { name: Sco.KEYWORD },
+    0: { name: Sco.OPERATOR },
   },
 };
 
@@ -947,10 +959,11 @@ export const row: schema.Rule = {
   patterns: [
     {
       begin: lookBehind(alt(Gph.LEFT_CURLY_BRACKET, Gph.COMMA)),
-      end: alt(ops(alt(capture(Gph.COMMA), capture(alt(Gph.COLON, Gph.EQUALS_SIGN)))), lookAhead(Gph.RIGHT_CURLY_BRACKET)),
+      end: alt(ops(alt(capture(Gph.COMMA), capture(Gph.COLON), capture(Gph.EQUALS_SIGN))), lookAhead(Gph.RIGHT_CURLY_BRACKET)),
       endCaptures: {
         1: { name: Sco.OPERATOR },
-        2: { name: Sco.KEYWORD },
+        2: { name: Sco.COLON },
+        3: { name: Sco.CONSTRUCTOR },
       },
       patterns: [
         {
@@ -996,7 +1009,7 @@ export const sigbind: schema.Rule = {
       begin: lookBehind(lastWords(Kwd.SIGNATURE, Kwd.AND)),
       end: ops(Gph.EQUALS_SIGN),
       endCaptures: {
-        0: { name: Sco.KEYWORD },
+        0: { name: Sco.CONSTRUCTOR },
       },
       patterns: [
         { include: `#comment` },
@@ -1052,7 +1065,7 @@ export const sigexp: schema.Rule = {
         { include: `#spec` },
       ],
       captures: {
-        0: { name: Sco.KEYWORD },
+        0: { name: Sco.SIG },
       },
     },
     {
@@ -1090,7 +1103,7 @@ export const spec: schema.Rule = {
       begin: words(Kwd.INCLUDE),
       end: Rx.topdecEnd,
       beginCaptures: {
-        0: { name: Sco.KEYWORD },
+        0: { name: Sco.INCLUDE },
       },
       patterns: [
         { include: `#sigexp` },
@@ -1103,9 +1116,10 @@ export const strbind: schema.Rule = {
   patterns: [
     {
       begin: lookBehind(lastWords(Kwd.STRUCTURE, Kwd.AND)),
-      end: ops(alt(seq(Gph.COLON, opt(Gph.GREATER_THAN_SIGN)), Gph.EQUALS_SIGN)),
+      end: ops(alt(capture(seq(Gph.COLON, opt(Gph.GREATER_THAN_SIGN))), capture(Gph.EQUALS_SIGN))),
       endCaptures: {
-        0: { name: Sco.KEYWORD },
+        1: { name: Sco.CONSTRUCTOR },
+        2: { name: Sco.CONSTRUCTOR },
       },
       patterns: [
         { include: `#comment` },
@@ -1116,7 +1130,7 @@ export const strbind: schema.Rule = {
       begin: lookBehind(lastOps(Gph.COLON, seq(Gph.COLON, Gph.GREATER_THAN_SIGN))),
       end: alt(ops(Gph.EQUALS_SIGN), Rx.topdecEnd),
       endCaptures: {
-        0: { name: Sco.KEYWORD },
+        0: { name: Sco.CONSTRUCTOR },
       },
       patterns: [
         { include: `#sigexp` },
@@ -1144,14 +1158,14 @@ export const strdec: schema.Rule = {
       begin: words(Kwd.LOCAL),
       end: lookBehind(lastWords(Kwd.END)),
       beginCaptures: {
-        0: { name: Sco.KEYWORD },
+        0: { name: Sco.LOCAL },
       },
       patterns: [
         {
           begin: lookBehind(lastWords(Kwd.LOCAL)),
           end: words(Kwd.IN),
           endCaptures: {
-            0: { name: Sco.KEYWORD },
+            0: { name: Sco.LOCAL },
           },
           patterns: [
             { include: `#dec` },
@@ -1162,7 +1176,7 @@ export const strdec: schema.Rule = {
           begin: lookBehind(lastWords(Kwd.IN)),
           end: words(Kwd.END),
           endCaptures: {
-            0: { name: Sco.KEYWORD },
+            0: { name: Sco.LOCAL },
           },
           patterns: [
             { include: `#dec` },
@@ -1180,7 +1194,7 @@ export const strdecStructure: schema.Rule = {
       begin: words(Kwd.STRUCTURE),
       end: Rx.topdecEnd,
       beginCaptures: {
-        0: { name: Sco.KEYWORD },
+        0: { name: Sco.STRUCTURE },
       },
       patterns: [
         { include: `#strbind` },
@@ -1202,8 +1216,11 @@ export const strexp: schema.Rule = {
       patterns: [
         { include: `#strdec` },
       ],
-      captures: {
-        0: { name: Sco.KEYWORD },
+      beginCaptures: {
+        0: { name: Sco.STRUCT },
+      },
+      endCaptures: {
+        0: { name: Sco.STRUCT },
       },
     },
     { include: `#qualifiedModule` },
@@ -1268,15 +1285,15 @@ export const typbind: schema.Rule = {
       begin: lookBehind(lastWords(Kwd.TYPE)),
       end: alt(Rx.topdecEnd, capture(ops(Gph.EQUALS_SIGN))),
       endCaptures: {
-        0: { name: Sco.KEYWORD },
+        0: { name: Sco.CONSTRUCTOR },
       },
       patterns: [
         { include: `#comment` },
-        { include: `#ty` },
         {
           match: Lex.vid,
           name: Sco.TYPE_NAME,
         },
+        { include: `#ty` },
       ],
     },
     {
@@ -1302,9 +1319,10 @@ export const valbind: schema.Rule = {
           alt(
             lastOps(Gph.VERTICAL_LINE),
             lastWords(Kwd.AND, Kwd.VAL))),
-      end: alt(ops(set(Gph.COLON, Gph.EQUALS_SIGN)), Rx.topdecEnd),
+      end: alt(ops(alt(capture(Gph.COLON), capture(Gph.EQUALS_SIGN))), Rx.topdecEnd),
       endCaptures: {
-        0: { name: Sco.KEYWORD },
+        1: { name: Sco.COLON },
+        2: { name: Sco.CONSTRUCTOR },
       },
       patterns: [
         {
@@ -1336,7 +1354,7 @@ export const valbind: schema.Rule = {
       begin: lookBehind(lastOps(Gph.COLON)),
       end: alt(ops(Gph.EQUALS_SIGN), Rx.topdecEnd),
       endCaptures: {
-        0: { name: Sco.KEYWORD },
+        0: { name: Sco.CONSTRUCTOR },
       },
       patterns: [
         { include: `#ty` },
@@ -1346,7 +1364,7 @@ export const valbind: schema.Rule = {
       begin: lookBehind(lastOps(Gph.EQUALS_SIGN)),
       end: alt(capture(ops(Gph.VERTICAL_LINE)), capture(words(Kwd.AND)), Rx.topdecEnd),
       endCaptures: {
-        1: { name: Sco.KEYWORD },
+        1: { name: Sco.OPERATOR },
         2: { name: Sco.AND },
       },
       patterns: [
