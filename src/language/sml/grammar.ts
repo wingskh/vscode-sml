@@ -244,10 +244,12 @@ export const Lex = {
 
 export const Sco = {
   AND: `variable.other.class.js variable.interpolation storage.modifier message.error`,
+  CASE: `keyword.control.switch`,
   COLON: `keyword.control.less constant.language`,
   COMMENT: `comment`,
   CONSTRUCTOR: `keyword.control.less constant.language`,
   FIELD_NAME: `markup.inserted constant.language support.property-value entity.name.filename`,
+  FIXITY: `keyword.control`,
   FUN: `storage.type`,
   FUNCTION_NAME: `entity.name.function`,
   FUNCTOR: `variable.other.class.js variable.interpolation keyword.operator keyword.control message.error`,
@@ -258,8 +260,9 @@ export const Sco = {
   MODULE_NAME: `support.class entity.name.class`,
   NUMBER: `constant.numeric`,
   OPEN: `keyword.control.open`,
-  OPERATOR: `variable.other.class.js variable.interpolation keyword.operator keyword.control message.error`,
+  OPERATOR: `markup.inserted constant.language support.property-value entity.name.filename`,
   PATTERN_VARIABLE: `string.other.link variable.language variable.parameter`,
+  RAISE: `keyword.control.throwcatch`,
   REC: `variable.other.class.js variable.interpolation keyword.operator keyword.control message.error`,
   SIG: `variable.other.class.js variable.interpolation keyword.control storage.type message.error`,
   SIGNATURE: `variable.other.class.js variable.interpolation keyword.control storage.type message.error`,
@@ -523,7 +526,7 @@ export const dec: schema.Rule = {
       begin: words(group(alt(Kwd.INFIX, Kwd.INFIXR, Kwd.NONFIX))),
       end: Rx.topdecEnd,
       beginCaptures: {
-        0: { name: Sco.KEYWORD },
+        0: { name: Sco.FIXITY },
       },
       patterns: [
         {
@@ -629,7 +632,7 @@ export const exp: schema.Rule = {
       begin: words(Kwd.HANDLE),
       end: Rx.expEnd,
       beginCaptures: {
-        0: { name: Sco.KEYWORD },
+        0: { name: Sco.RAISE },
       },
       patterns: [
         { include: `#match` },
@@ -637,7 +640,7 @@ export const exp: schema.Rule = {
     },
     {
       match: words(Kwd.RAISE),
-      name: Sco.KEYWORD,
+      name: Sco.RAISE,
     },
     {
       begin: words(Kwd.FN),
@@ -655,7 +658,7 @@ export const exp: schema.Rule = {
           begin: words(Kwd.CASE),
           end: words(Kwd.OF),
           captures: {
-            0: { name: Sco.KEYWORD },
+            0: { name: Sco.CASE },
           },
           patterns: [
             { include: `#exp` },
