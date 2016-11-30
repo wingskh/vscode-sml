@@ -367,16 +367,6 @@ export const atexp: schema.Rule = {
         { include: `#exp` },
       ],
     },
-    {
-      begin: Gph.LEFT_SQUARE_BRACKET,
-      end: Gph.RIGHT_SQUARE_BRACKET,
-      captures: {
-        0: { name: Sco.CONSTRUCTOR },
-      },
-      patterns: [
-        { include: `#exp` },
-      ],
-    },
   ],
 };
 
@@ -457,6 +447,16 @@ export const constant: schema.Rule = {
       },
       patterns: [
         { include: `#row` },
+      ],
+    },
+    {
+      begin: Gph.LEFT_SQUARE_BRACKET,
+      end: Gph.RIGHT_SQUARE_BRACKET,
+      captures: {
+        0: { name: Sco.CONSTRUCTOR },
+      },
+      patterns: [
+        { include: `#exp` },
       ],
     },
   ],
@@ -896,6 +896,26 @@ export const match: schema.Rule = {
 
 export const pat: schema.Rule = {
   patterns: [
+    {
+      begin: Gph.LEFT_CURLY_BRACKET,
+      end: Gph.RIGHT_CURLY_BRACKET,
+      captures: {
+        0: { name: Sco.CONSTRUCTOR },
+      },
+      patterns: [
+        { include: `#patrow` },
+      ],
+    },
+    {
+      begin: Gph.LEFT_SQUARE_BRACKET,
+      end: Gph.RIGHT_SQUARE_BRACKET,
+      captures: {
+        0: { name: Sco.CONSTRUCTOR },
+      },
+      patterns: [
+        { include: `#pat` },
+      ],
+    },
     { include: `#constant` },
     {
       // FIXME
@@ -940,7 +960,47 @@ export const pat: schema.Rule = {
 };
 
 export const patrow: schema.Rule = {
-  patterns: [],
+  patterns: [
+    {
+      begin: lookBehind(alt(Gph.LEFT_CURLY_BRACKET, Gph.COMMA)),
+      end: alt(ops(alt(capture(Gph.COMMA), capture(Gph.COLON), capture(Gph.EQUALS_SIGN))), lookAhead(Gph.RIGHT_CURLY_BRACKET)),
+      endCaptures: {
+        1: { name: Sco.COMMA },
+        2: { name: Sco.COLON },
+        3: { name: Sco.COLON },
+      },
+      patterns: [
+        {
+          match: Lex.vid,
+          name: Sco.FIELD_NAME,
+        },
+        {
+          match: ops(Gph.ELLIPSIS),
+          name: Sco.CONSTRUCTOR,
+        },
+      ],
+    },
+    {
+      begin: lookBehind(lastOps(Gph.COLON)),
+      end: alt(Gph.COMMA, lookAhead(Gph.RIGHT_CURLY_BRACKET)),
+      endCaptures: {
+        0: { name: Sco.PUNCTUATION },
+      },
+      patterns: [
+        { include: `#ty` },
+      ],
+    },
+    {
+      begin: lookBehind(lastOps(Gph.EQUALS_SIGN)),
+      end: alt(Gph.COMMA, lookAhead(Gph.RIGHT_CURLY_BRACKET)),
+      endCaptures: {
+        0: { name: Sco.COMMA },
+      },
+      patterns: [
+        { include: `#pat` },
+      ],
+    },
+  ],
 };
 
 export const qualifiedConstant: schema.Rule = {
