@@ -17,10 +17,7 @@
     "vscode": "^1.5.0"
   },
   "categories": [
-    "Formatters",
-    "Languages",
-    "Linters",
-    "Snippets"
+    "Languages"
   ],
   "activationEvents": [
     "onLanguage:sml"
