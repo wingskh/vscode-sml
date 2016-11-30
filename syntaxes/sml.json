@@ -53,12 +53,6 @@
           ]
         },
         {
-          "match": "\\(\\)"
-        },
-        {
-          "match": "\\[\\]"
-        },
-        {
           "begin": "\\blet\\b",
           "end": "(?<=[^[:word:]]end|^end)",
           "captures": {
@@ -100,6 +94,11 @@
         {
           "begin": "\\{",
           "end": "\\}",
+          "captures": {
+            "0": {
+              "name": "keyword.control.less constant.language constant.numeric"
+            }
+          },
           "patterns": [
             {
               "include": "#exp"
@@ -109,6 +108,11 @@
         {
           "begin": "\\((?!=\\))",
           "end": "\\)",
+          "captures": {
+            "0": {
+              "name": "punctuation.definition.tag"
+            }
+          },
           "patterns": [
             {
               "begin": "(?<=[^:!?'@/\\-\\*\\\\\\+\\|&#%`^<=>~$]):(?=[^:!?'@/\\-\\*\\\\\\+\\|&#%`^<=>~$])",
@@ -132,6 +136,11 @@
         {
           "begin": "\\[",
           "end": "\\]",
+          "captures": {
+            "0": {
+              "name": "keyword.control.less constant.language constant.numeric"
+            }
+          },
           "patterns": [
             {
               "include": "#exp"
@@ -214,8 +223,21 @@
           "include": "#qualifiedConstant"
         },
         {
+          "match": "\\(\\)",
+          "name": "keyword.control.less constant.language constant.numeric"
+        },
+        {
+          "match": "\\[\\]",
+          "name": "keyword.control.less constant.language constant.numeric"
+        },
+        {
           "begin": "\\{",
           "end": "\\}",
+          "captures": {
+            "0": {
+              "name": "keyword.control.less constant.language constant.numeric"
+            }
+          },
           "patterns": [
             {
               "include": "#row"
@@ -549,6 +571,11 @@
             {
               "begin": "\\(",
               "end": "\\)",
+              "captures": {
+                "0": {
+                  "name": "punctuation.definition.tag"
+                }
+              },
               "patterns": [
                 {
                   "include": "#spec"
@@ -774,7 +801,7 @@
           "match": "((?<=[^:!?'@/\\-\\*\\\\\\+\\|&#%`^<=>~$])_(?=[^:!?'@/\\-\\*\\\\\\+\\|&#%`^<=>~$]))|((?=[[:lower:]])(?!=\\b(?:abstype|and|andalso|as|case|datatype|do|else|end|eqtype|exception|false|fn|fun|functor|handle|if|in|infix|infixr|include|let|local|nonfix|of|op|open|orelse|raise|rec|sharing|sig|signature|struct|structure|then|true|type|val|where|while|with|withtype)\\b)\\b[[:alpha:]][[:alnum:]'_]*(?:\\b|(?=[[:space:]])))",
           "captures": {
             "1": {
-              "name": "comment"
+              "name": "comment punctuation.definition.tag"
             },
             "2": {
               "name": "string.other.link variable.language variable.parameter"
@@ -784,6 +811,11 @@
         {
           "begin": "\\(",
           "end": "\\)",
+          "captures": {
+            "0": {
+              "name": "punctuation.definition.tag"
+            }
+          },
           "patterns": [
             {
               "include": "#comment"
@@ -1260,6 +1292,11 @@
         {
           "begin": "\\{",
           "end": "\\}",
+          "captures": {
+            "0": {
+              "name": "keyword.control.less constant.language constant.numeric"
+            }
+          },
           "patterns": [
             {
               "include": "#row"
@@ -1273,6 +1310,11 @@
         {
           "begin": "\\(",
           "end": "\\)",
+          "captures": {
+            "0": {
+              "name": "punctuation.definition.tag"
+            }
+          },
           "patterns": [
             {
               "include": "#ty"

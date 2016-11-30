@@ -250,6 +250,7 @@ export const Sco = {
   COMMA: `string.regexp`,
   COMMENT: `comment`,
   CONSTRUCTOR: `keyword.control.less constant.language constant.numeric`,
+  DELIMITER: `punctuation.definition.tag`,
   DOT: `keyword`,
   FIELD_NAME: `markup.inserted constant.language support.property-value entity.name.filename`,
   FIXITY: `keyword.control`,
@@ -308,12 +309,6 @@ export const atexp: schema.Rule = {
       ],
     },
     {
-      match: seq(Gph.LEFT_PARENTHESIS, Gph.RIGHT_PARENTHESIS),
-    },
-    {
-      match: seq(Gph.LEFT_SQUARE_BRACKET, Gph.RIGHT_SQUARE_BRACKET),
-    },
-    {
       begin: words(Kwd.LET),
       end: lookBehind(lastWords(Kwd.END)),
       captures: {
@@ -345,6 +340,9 @@ export const atexp: schema.Rule = {
     {
       begin: Gph.LEFT_CURLY_BRACKET,
       end: Gph.RIGHT_CURLY_BRACKET,
+      captures: {
+        0: { name: Sco.CONSTRUCTOR },
+      },
       patterns: [
         { include: `#exp` },
       ],
@@ -352,6 +350,9 @@ export const atexp: schema.Rule = {
     {
       begin: seq(Gph.LEFT_PARENTHESIS, negativeLookAhead(Gph.RIGHT_PARENTHESIS)),
       end: Gph.RIGHT_PARENTHESIS,
+      captures: {
+        0: { name: Sco.DELIMITER },
+      },
       patterns: [
         {
           begin: ops(Gph.COLON),
@@ -369,6 +370,9 @@ export const atexp: schema.Rule = {
     {
       begin: Gph.LEFT_SQUARE_BRACKET,
       end: Gph.RIGHT_SQUARE_BRACKET,
+      captures: {
+        0: { name: Sco.CONSTRUCTOR },
+      },
       patterns: [
         { include: `#exp` },
       ],
@@ -438,8 +442,19 @@ export const constant: schema.Rule = {
     },
     { include: `#qualifiedConstant` },
     {
+      match: seq(Gph.LEFT_PARENTHESIS, Gph.RIGHT_PARENTHESIS),
+      name: Sco.CONSTRUCTOR,
+    },
+    {
+      match: seq(Gph.LEFT_SQUARE_BRACKET, Gph.RIGHT_SQUARE_BRACKET),
+      name: Sco.CONSTRUCTOR,
+    },
+    {
       begin: Gph.LEFT_CURLY_BRACKET,
       end: Gph.RIGHT_CURLY_BRACKET,
+      captures: {
+        0: { name: Sco.CONSTRUCTOR },
+      },
       patterns: [
         { include: `#row` },
       ],
@@ -715,6 +730,9 @@ export const funbind: schema.Rule = {
         {
           begin: Gph.LEFT_PARENTHESIS,
           end: Gph.RIGHT_PARENTHESIS,
+          captures: {
+            0: { name: Sco.DELIMITER },
+          },
           patterns: [
             { include: `#spec` },
             {
@@ -892,7 +910,7 @@ export const pat: schema.Rule = {
       // FIXME: pattern variable
       match: alt(capture(ops(Gph.LOW_LINE)), capture(seq(lookAhead(set(Cls.lower)), Lex.vid))),
       captures: {
-        1: { name: Sco.COMMENT },
+        1: { name: `${Sco.COMMENT} ${Sco.DELIMITER}` },
         2: { name: Sco.PATTERN_VARIABLE },
       },
     },
@@ -900,6 +918,9 @@ export const pat: schema.Rule = {
       // FIXME
       begin: Gph.LEFT_PARENTHESIS,
       end: Gph.RIGHT_PARENTHESIS,
+      captures: {
+        0: { name: Sco.DELIMITER },
+      },
       patterns: [
         { include: `#comment` },
         {
@@ -1256,6 +1277,9 @@ export const ty: schema.Rule = {
     {
       begin: Gph.LEFT_CURLY_BRACKET,
       end: Gph.RIGHT_CURLY_BRACKET,
+      captures: {
+        0: { name: Sco.CONSTRUCTOR },
+      },
       patterns: [
         { include: `#row` },
       ],
@@ -1271,6 +1295,9 @@ export const ty: schema.Rule = {
     {
       begin: Gph.LEFT_PARENTHESIS,
       end: Gph.RIGHT_PARENTHESIS,
+      captures: {
+        0: { name: Sco.DELIMITER },
+      },
       patterns: [
         { include: `#ty` },
         {
