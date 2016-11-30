@@ -163,7 +163,7 @@
               "name": "markup.inserted constant.language support.property-value entity.name.filename"
             },
             "2": {
-              "name": "markup.inserted constant.language support.property-value entity.name.filename"
+              "name": "keyword.control.switch"
             }
           },
           "patterns": [
@@ -181,7 +181,7 @@
           "end": "(?<=[^:!?'@/\\-\\*\\\\\\+\\|&#%`^<=>~$])\\|(?=[^:!?'@/\\-\\*\\\\\\+\\|&#%`^<=>~$])|(?=\\}|\\)|\\]|\\b(?:abstype|and|datatype|exception|fun|infix|infixr|local|nonfix|open|type|val|include|local|functor|signature|structure|end|in)\\b(?:$|[[:space:]]|(?<=[^:!?'@/\\-\\*\\\\\\+\\|&#%`^<=>~$])\\}|\\)|\\](?=[^:!?'@/\\-\\*\\\\\\+\\|&#%`^<=>~$])))",
           "endCaptures": {
             "0": {
-              "name": "markup.inserted constant.language support.property-value entity.name.filename"
+              "name": "keyword.control.switch"
             }
           },
           "patterns": [
@@ -695,7 +695,7 @@
           "end": "((?<=[^:!?'@/\\-\\*\\\\\\+\\|&#%`^<=>~$])\\|(?=[^:!?'@/\\-\\*\\\\\\+\\|&#%`^<=>~$]))|(\\band\\b)|(?=\\}|\\)|\\]|\\b(?:abstype|and|datatype|exception|fun|infix|infixr|local|nonfix|open|type|val|include|local|functor|signature|structure|end|in)\\b(?:$|[[:space:]]|(?<=[^:!?'@/\\-\\*\\\\\\+\\|&#%`^<=>~$])\\}|\\)|\\](?=[^:!?'@/\\-\\*\\\\\\+\\|&#%`^<=>~$])))",
           "endCaptures": {
             "1": {
-              "name": "markup.inserted constant.language support.property-value entity.name.filename"
+              "name": "keyword.control.switch"
             },
             "2": {
               "name": "variable.other.class.js variable.interpolation storage.modifier message.error"
@@ -723,7 +723,7 @@
           "end": "(?<=[^:!?'@/\\-\\*\\\\\\+\\|&#%`^<=>~$])=>(?=[^:!?'@/\\-\\*\\\\\\+\\|&#%`^<=>~$])",
           "endCaptures": {
             "0": {
-              "name": "markup.inserted constant.language support.property-value entity.name.filename"
+              "name": "keyword.control.switch"
             }
           },
           "patterns": [
@@ -740,7 +740,7 @@
           "end": "(?<=[^:!?'@/\\-\\*\\\\\\+\\|&#%`^<=>~$])\\|(?=[^:!?'@/\\-\\*\\\\\\+\\|&#%`^<=>~$])|(?=,|\\}|\\)|\\]|\\b(?:abstype|and|datatype|exception|fun|infix|infixr|local|nonfix|open|type|val|include|local|functor|signature|structure|end|in)\\b(?:$|[[:space:]]|(?<=[^:!?'@/\\-\\*\\\\\\+\\|&#%`^<=>~$]),|\\}|\\)|\\](?=[^:!?'@/\\-\\*\\\\\\+\\|&#%`^<=>~$])))",
           "endCaptures": {
             "0": {
-              "name": "markup.inserted constant.language support.property-value entity.name.filename"
+              "name": "keyword.control.switch"
             }
           },
           "patterns": [
@@ -1396,7 +1396,7 @@
           "end": "((?<=[^:!?'@/\\-\\*\\\\\\+\\|&#%`^<=>~$])\\|(?=[^:!?'@/\\-\\*\\\\\\+\\|&#%`^<=>~$]))|(\\band\\b)|(?=\\}|\\)|\\]|\\b(?:abstype|and|datatype|exception|fun|infix|infixr|local|nonfix|open|type|val|include|local|functor|signature|structure|end|in)\\b(?:$|[[:space:]]|(?<=[^:!?'@/\\-\\*\\\\\\+\\|&#%`^<=>~$])\\}|\\)|\\](?=[^:!?'@/\\-\\*\\\\\\+\\|&#%`^<=>~$])))",
           "endCaptures": {
             "1": {
-              "name": "markup.inserted constant.language support.property-value entity.name.filename"
+              "name": "keyword.control.switch"
             },
             "2": {
               "name": "variable.other.class.js variable.interpolation storage.modifier message.error"

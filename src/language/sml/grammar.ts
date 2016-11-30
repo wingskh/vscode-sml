@@ -395,7 +395,7 @@ export const conbind: schema.Rule = {
           Rx.topdecEnd),
       endCaptures: {
         1: { name: Sco.OPERATOR },
-        2: { name: Sco.OPERATOR },
+        2: { name: Sco.CASE },
       },
       patterns: [
         { include: `#comment` },
@@ -409,7 +409,7 @@ export const conbind: schema.Rule = {
       begin: lookBehind(lastWords(Kwd.OF)),
       end: alt(ops(Gph.VERTICAL_LINE), Rx.topdecEnd),
       endCaptures: {
-        0: { name: Sco.OPERATOR },
+        0: { name: Sco.CASE },
       },
       patterns: [
         { include: `#comment` },
@@ -825,7 +825,7 @@ export const fvalbind: schema.Rule = {
       begin: lookBehind(lastOps(Gph.EQUALS_SIGN)),
       end: alt(capture(ops(Gph.VERTICAL_LINE)), capture(words(Kwd.AND)), Rx.topdecEnd),
       endCaptures: {
-        1: { name: Sco.OPERATOR },
+        1: { name: Sco.CASE },
         2: { name: Sco.AND },
       },
       patterns: [
@@ -851,7 +851,7 @@ export const match: schema.Rule = {
             lastOps(Gph.VERTICAL_LINE))),
       end: ops(seq(Gph.EQUALS_SIGN, Gph.GREATER_THAN_SIGN)),
       endCaptures: {
-        0: { name: Sco.OPERATOR },
+        0: { name: Sco.CASE },
       },
       patterns: [
         { include: `#comment` },
@@ -862,7 +862,7 @@ export const match: schema.Rule = {
       begin: lookBehind(lastOps(seq(Gph.EQUALS_SIGN, Gph.GREATER_THAN_SIGN))),
       end: alt(ops(Gph.VERTICAL_LINE), Rx.expEnd),
       endCaptures: {
-        0: { name: Sco.OPERATOR },
+        0: { name: Sco.CASE },
       },
       patterns: [
         { include: `#exp` },
@@ -1367,7 +1367,7 @@ export const valbind: schema.Rule = {
       begin: lookBehind(lastOps(Gph.EQUALS_SIGN)),
       end: alt(capture(ops(Gph.VERTICAL_LINE)), capture(words(Kwd.AND)), Rx.topdecEnd),
       endCaptures: {
-        1: { name: Sco.OPERATOR },
+        1: { name: Sco.CASE },
         2: { name: Sco.AND },
       },
       patterns: [
