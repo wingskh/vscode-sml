@@ -536,7 +536,7 @@
               "name": "variable.other.class.js variable.interpolation keyword.operator keyword.control message.error"
             },
             "2": {
-              "name": "markup.inserted constant.language support.property-value entity.name.filename"
+              "name": "variable.other.class.js variable.interpolation keyword.operator keyword.control message.error"
             }
           },
           "patterns": [

@@ -703,7 +703,7 @@ export const funbind: schema.Rule = {
       end: ops(alt(capture(Gph.COLON), capture(Gph.EQUALS_SIGN))),
       endCaptures: {
         1: { name: Sco.COLON },
-        2: { name: Sco.CONSTRUCTOR },
+        2: { name: Sco.COLON },
       },
       patterns: [
         { include: `#comment` },
