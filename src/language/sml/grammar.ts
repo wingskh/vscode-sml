@@ -244,10 +244,13 @@ export const Lex = {
 
 export const Sco = {
   AND: `variable.other.class.js variable.interpolation storage.modifier message.error`,
+  APOSTROPHE: `punctuation.definition.tag`,
   CASE: `keyword.control.switch`,
   COLON: `variable.other.class.js variable.interpolation keyword.operator keyword.control message.error`,
+  COMMA: `string.regexp`,
   COMMENT: `comment`,
-  CONSTRUCTOR: `markup.inserted constant.language support.property-value entity.name.filename`,
+  CONSTRUCTOR: `keyword.control.less constant.language constant.numeric`,
+  DOT: `keyword`,
   FIELD_NAME: `markup.inserted constant.language support.property-value entity.name.filename`,
   FIXITY: `keyword.control`,
   FUN: `storage.type`,
@@ -257,12 +260,12 @@ export const Sco = {
   KEYWORD: `keyword`,
   LET: `keyword.control`,
   LOCAL: `keyword.control`,
-  MODULE_NAME: `support.class entity.name.class`,
+  MODULE_NAME: `entity.name.class constant.numeric`,
   NUMBER: `constant.numeric`,
   OPEN: `keyword.control.open`,
-  OPERATOR: `variable.other.class.js variable.interpolation keyword.operator keyword.control.less message.error`,
+  OPERATOR: `variable.other.class.js message.error variable.interpolation string.regexp`,
   PATTERN_VARIABLE: `string.other.link variable.language variable.parameter`,
-  PUNCTUATION: `keyword.control`,
+  PUNCTUATION: `string.regexp`,
   RAISE: `keyword.control.throwcatch`,
   REC: `variable.other.class.js variable.interpolation keyword.operator keyword.control message.error`,
   SIG: `variable.other.class.js variable.interpolation keyword.control storage.type message.error`,
@@ -270,11 +273,12 @@ export const Sco = {
   STRING: `string.double`,
   STRUCTURE: `variable.other.class.js variable.interpolation keyword.control storage.type message.error`,
   STRUCT: `variable.other.class.js variable.interpolation keyword.control storage.type message.error`,
-  TYPE_CONSTRUCTOR: `support constant.numeric`,
+  TYPE_CONSTRUCTOR: `support.type`,
   TYPE_NAME: `entity.name.function`,
-  TYPE_OPERATOR: `variable.other.class.js variable.interpolation keyword.operator keyword.control message.error`,
+  TYPE_OPERATOR: `markup.inserted string.regexp`,
   TYPE_VARIABLE: `variable.parameter string.other.link variable.language`,
   VAL: `storage.type`,
+  VERTICAL_LINE: `keyword.control.switch`,
 };
 
 export const appexp: schema.Rule = {
@@ -395,8 +399,8 @@ export const conbind: schema.Rule = {
           capture(ops(Gph.VERTICAL_LINE)),
           Rx.topdecEnd),
       endCaptures: {
-        1: { name: Sco.OPERATOR },
-        2: { name: Sco.CASE },
+        1: { name: Sco.CASE },
+        2: { name: Sco.VERTICAL_LINE },
       },
       patterns: [
         { include: `#comment` },
@@ -410,7 +414,7 @@ export const conbind: schema.Rule = {
       begin: lookBehind(lastWords(Kwd.OF)),
       end: alt(ops(Gph.VERTICAL_LINE), Rx.topdecEnd),
       endCaptures: {
-        0: { name: Sco.CASE },
+        0: { name: Sco.VERTICAL_LINE },
       },
       patterns: [
         { include: `#comment` },
@@ -624,7 +628,7 @@ export const exp: schema.Rule = {
       // FIXME
       match: alt(capture(ops(Gph.COMMA)), capture(alt(Gph.SEMICOLON, Lex.operator)), capture(words(Kwd.AS))),
       captures: {
-        1: { name: Sco.PUNCTUATION },
+        1: { name: Sco.COMMA },
         2: { name: Sco.OPERATOR },
         3: { name: Sco.KEYWORD },
       },
@@ -826,7 +830,7 @@ export const fvalbind: schema.Rule = {
       begin: lookBehind(lastOps(Gph.EQUALS_SIGN)),
       end: alt(capture(ops(Gph.VERTICAL_LINE)), capture(words(Kwd.AND)), Rx.topdecEnd),
       endCaptures: {
-        1: { name: Sco.CASE },
+        1: { name: Sco.VERTICAL_LINE },
         2: { name: Sco.AND },
       },
       patterns: [
@@ -863,7 +867,7 @@ export const match: schema.Rule = {
       begin: lookBehind(lastOps(seq(Gph.EQUALS_SIGN, Gph.GREATER_THAN_SIGN))),
       end: alt(ops(Gph.VERTICAL_LINE), Rx.expEnd),
       endCaptures: {
-        0: { name: Sco.CASE },
+        0: { name: Sco.VERTICAL_LINE },
       },
       patterns: [
         { include: `#exp` },
@@ -879,7 +883,7 @@ export const pat: schema.Rule = {
       // FIXME
       match: alt(capture(ops(Gph.COMMA)), capture(Lex.operator), capture(words(Kwd.AS))),
       captures: {
-        1: { name: Sco.PUNCTUATION },
+        1: { name: Sco.COMMA },
         2: { name: Sco.OPERATOR },
         3: { name: Sco.KEYWORD },
       },
@@ -945,7 +949,7 @@ export const qualifiedPrefix: schema.Rule = {
     0: { name: Sco.MODULE_NAME },
   },
   endCaptures: {
-    0: { name: Sco.PUNCTUATION },
+    0: { name: Sco.DOT },
   },
 };
 
@@ -965,7 +969,7 @@ export const row: schema.Rule = {
       begin: lookBehind(alt(Gph.LEFT_CURLY_BRACKET, Gph.COMMA)),
       end: alt(ops(alt(capture(Gph.COMMA), capture(Gph.COLON), capture(Gph.EQUALS_SIGN))), lookAhead(Gph.RIGHT_CURLY_BRACKET)),
       endCaptures: {
-        1: { name: Sco.PUNCTUATION },
+        1: { name: Sco.COMMA },
         2: { name: Sco.COLON },
         3: { name: Sco.COLON },
       },
@@ -994,7 +998,7 @@ export const row: schema.Rule = {
       begin: lookBehind(lastOps(Gph.EQUALS_SIGN)),
       end: alt(Gph.COMMA, lookAhead(Gph.RIGHT_CURLY_BRACKET)),
       endCaptures: {
-        0: { name: Sco.PUNCTUATION },
+        0: { name: Sco.COMMA },
       },
       patterns: [
         { include: `#exp` },
@@ -1245,7 +1249,7 @@ export const ty: schema.Rule = {
     {
       match: Lex.tyvar,
       captures: {
-        1: { name: Sco.COMMENT },
+        1: { name: Sco.APOSTROPHE },
         2: { name: Sco.TYPE_VARIABLE },
       },
     },
@@ -1271,7 +1275,7 @@ export const ty: schema.Rule = {
         { include: `#ty` },
         {
           match: Gph.COMMA,
-          name: Sco.PUNCTUATION,
+          name: Sco.COMMA,
         },
       ],
     },
@@ -1368,7 +1372,7 @@ export const valbind: schema.Rule = {
       begin: lookBehind(lastOps(Gph.EQUALS_SIGN)),
       end: alt(capture(ops(Gph.VERTICAL_LINE)), capture(words(Kwd.AND)), Rx.topdecEnd),
       endCaptures: {
-        1: { name: Sco.CASE },
+        1: { name: Sco.VERTICAL_LINE },
         2: { name: Sco.AND },
       },
       patterns: [
