@@ -1024,8 +1024,8 @@ export const qualifiedModule: schema.Rule = {
 };
 
 export const qualifiedPrefix: schema.Rule = {
-  begin: seq(lookAhead(set(Cls.upper)), Lex.vid, lookAhead(seq(many(set(Cls.space)), ops(Gph.FULL_STOP)))),
-  end: ops(Gph.FULL_STOP),
+  begin: seq(lookAhead(set(Cls.upper)), Lex.vid, lookAhead(seq(many(set(Cls.space)), Gph.FULL_STOP))),
+  end: Gph.FULL_STOP,
   beginCaptures: {
     0: { name: Sco.MODULE_NAME },
   },
