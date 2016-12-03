@@ -24,6 +24,28 @@
   ],
   "main": "./out/src/extension",
   "contributes": {
+    "configuration": {
+      "type": "object",
+      "title": "SML configuration",
+      "properties": {
+        "sml.smlnj.path": {
+          "type": "string",
+          "default": "sml",
+          "description": "Path to the SML/NJ binary"
+        },
+        "sml.smlnj.args": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "description": "Arguments to pass to the SML/NJ binary"
+        },
+        "sml.ignoreMissingSmlDotJson": {
+          "type": "boolean",
+          "default": false,
+          "description": "Don't prompt about missing sml.json for CM.make"
+        }
+      }
+    },
     "grammars": [
       {
         "language": "sml",
