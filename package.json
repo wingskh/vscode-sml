@@ -30,8 +30,12 @@
       "properties": {
         "sml.smlnj.make.debounce": {
           "oneOf": [
-            { "type": "null" },
-            { "type": "number" }
+            {
+              "type": "null"
+            },
+            {
+              "type": "number"
+            }
           ],
           "default": 1000,
           "description": "How long to idle (in milliseconds) after keypresses before refreshing diagnostics. Smaller values refresh diagnostics more quickly. Set to null to disable."
@@ -90,6 +94,8 @@
     "typescript": "2.0.10",
     "vscode": "1.0.3"
   },
-  "dependencies": {},
+  "dependencies": {
+    "lodash": "4.17.2"
+  },
   "extensionDependencies": []
 }
