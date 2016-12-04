@@ -6,7 +6,7 @@ import * as vs from "vscode";
 import * as sml from "./language/sml";
 
 class Pattern {
-  public static readonly diagnostic: RegExp = /^(.+?):(\d+)\.(\d+)(?:-(\d+).(\d+))?\s(\b(?:Error)\b):\s(.*)$/;
+  public static readonly diagnostic: RegExp = /^(.+?):(\d+)\.(\d+)(?:-(\d+).(\d+))?\s(\b(?:Error)\b):\s(.*(?:\n\s+.*)*)/m;
 }
 
 class Session implements vs.Disposable {
@@ -52,7 +52,7 @@ class Transducer extends events.EventEmitter implements vs.Disposable {
   }
 
   public feed(data: Buffer | string): void {
-    const lines = data.toString().split("\n");
+    const lines = data.toString().split(/\n(?!\s)/m);
     while (lines.length > 0) {
       this.pendingLine += lines.shift();
       if (lines.length > 0) {
