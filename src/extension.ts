@@ -1,6 +1,7 @@
 import * as childProcess from "child_process";
 import * as events from "events";
 import * as fs from "fs";
+import * as lodash from "lodash";
 import * as path from "path";
 import * as vs from "vscode";
 import * as sml from "./language/sml";
@@ -28,11 +29,21 @@ class Session implements vs.Disposable {
 
   public async initialize(): Promise<void> {
     await this.sml.reload();
+    this.subscriptions.push(vs.workspace.onDidChangeConfiguration(this.onDidChangeConfiguration.bind(this)));
+    this.subscriptions.push(vs.workspace.onDidChangeTextDocument(this.onChangeTextDocument.bind(this)));
     this.subscriptions.push(vs.workspace.onDidSaveTextDocument(this.onDidSaveTextDocument.bind(this)));
   }
 
+  public async onDidChangeConfiguration(): Promise<void> {
+    await this.sml.onDidChangeConfiguration();
+  }
+
+  public async onChangeTextDocument({ document }: vs.TextDocumentChangeEvent): Promise<void> {
+    if (document.languageId === "sml") await this.sml.make(document);
+  }
+
   public async onDidSaveTextDocument(document: vs.TextDocument): Promise<void> {
-    if (document.languageId === "sml") await this.sml.make();
+    if (document.languageId === "sml") await this.sml.makeImmediate();
   }
 }
 
@@ -71,6 +82,7 @@ class Transducer extends events.EventEmitter implements vs.Disposable {
 class SML implements vs.Disposable {
   public prompted: boolean = false;
   public json: null | { cm: { "make/onSave": string } } = null;
+  public readonly make: ((document: vs.TextDocument) => Promise<void>) & lodash.Cancelable;
   private readonly diagnostics: vs.DiagnosticCollection = vs.languages.createDiagnosticCollection("sml");
   private process: childProcess.ChildProcess;
   private readonly session: Session;
@@ -89,6 +101,7 @@ class SML implements vs.Disposable {
       this.watcher.onDidDelete(this.reload.bind(this)),
       this.statusItem = vs.window.createStatusBarItem(vs.StatusBarAlignment.Right, 1),
     );
+    this.onDidChangeConfiguration();
     return this;
   }
 
@@ -97,8 +110,19 @@ class SML implements vs.Disposable {
     for (const item of this.subscriptions) item.dispose();
   }
 
-  public async make(): Promise<void> {
+  public async makeImmediate(): Promise<void> {
     if (this.json && this.json.cm != null) await this.execute(`CM.make "${this.json.cm["make/onSave"]}"`);
+  }
+
+  public async onDidChangeConfiguration(): Promise<void> {
+    const wait = vs.workspace.getConfiguration("sml").get<null | number>("smlnj.make.debounce");
+    if (wait != null) {
+      (this as any).make = lodash.debounce(async (document: vs.TextDocument) => { // tslint:disable-line arrow-parens
+        await document.save();
+      }, wait, { trailing: true });
+    } else {
+      (this as any).make = lodash.debounce(async () => {/* */});
+    }
   }
 
   public async reload(): Promise<void> {
@@ -146,7 +170,7 @@ class SML implements vs.Disposable {
 
   private async disconnect(): Promise<void> {
     await new Promise((resolve) => this.process.stdin.end(resolve)); // CTRL-D
-    await new Promise((resolve) => this.process.on("exit", () => resolve()));
+    await new Promise((resolve) => this.process.on("exit", resolve));
     delete this.process;
   }
 
