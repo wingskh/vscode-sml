@@ -9,6 +9,16 @@
             "end"
         ]
     },
+    "Local Declarations": {
+        "prefix": "local",
+        "body": [
+            "local",
+            "  ${bindings}",
+            "in",
+            "  ${decls}",
+            "end"
+        ]
+    },
     "Case Statement": {
         "prefix": "case",
         "body": [
