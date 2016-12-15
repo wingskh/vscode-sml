@@ -249,7 +249,7 @@ export const Sco = {
   COLON: `variable.other.class.js variable.interpolation keyword.operator keyword.control message.error`,
   COMMA: `string.regexp`,
   COMMENT: `comment`,
-  CONSTRUCTOR: `keyword.control.less constant.language constant.numeric`,
+  CONSTRUCTOR: `entity.other.attribute-name.css constant.language constant.numeric`,
   DELIMITER: `punctuation.definition.tag`,
   DOT: `keyword`,
   FIELD_NAME: `markup.inserted constant.language support.property-value entity.name.filename`,
