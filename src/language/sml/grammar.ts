@@ -1476,7 +1476,7 @@ export const valdesc: schema.Rule = {
 const grammar: schema.IGrammar = {
   name: `Standard ML`,
   scopeName: `source.sml`,
-  fileTypes: [`.fun`, `.sig`, `.sml`],
+  fileTypes: [`.fun`, `.sig`, `.sml`, `.cm`, `.lex`, `.grm`],
   patterns: [
     { include: `#topdec` },
   ],

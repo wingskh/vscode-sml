@@ -4,7 +4,10 @@
   "fileTypes": [
     ".fun",
     ".sig",
-    ".sml"
+    ".sml",
+    ".cm",
+    ".lex",
+    ".grm"
   ],
   "patterns": [
     {
