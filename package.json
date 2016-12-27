@@ -76,7 +76,10 @@
         "extensions": [
           ".fun",
           ".sig",
-          ".sml"
+          ".sml",
+          ".cm",
+          ".lex",
+          ".grm"
         ],
         "configuration": "./sml.configuration.json"
       }
