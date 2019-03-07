@@ -7,7 +7,8 @@
     ".sml",
     ".cm",
     ".lex",
-    ".grm"
+    ".grm",
+    ".ML"
   ],
   "patterns": [
     {
@@ -321,6 +322,9 @@
         },
         {
           "include": "#decException"
+        },
+        {
+          "include": "#comment"
         },
         {
           "begin": "\\bfun\\b",
